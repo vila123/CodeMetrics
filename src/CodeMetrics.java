@@ -1,6 +1,8 @@
 // CodeMetrics
 // TODOD: Support excluding files or folders
+// -e PATH1_TO_EXCLUDE;PATH2_TO_EXCLUDE
 // TODOD: Support for defining components/modules
+// -m module1=PATH1;PATH2 module2=PATH3
 // TODOD: Support for Java, C#, C++, XML
 
 import java.io.BufferedReader;
