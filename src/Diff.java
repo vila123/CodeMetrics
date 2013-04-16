@@ -82,9 +82,11 @@
 
 
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 //////////////////////////////////////////////////////////////////////////////
 // Class: fileInfo
@@ -92,7 +94,7 @@ import java.io.IOException;
 
 class fileInfo {    
   static final int MAXLINECOUNT = 20000;
-  DataInputStream file;   // File handle that is open for read.
+  BufferedReader file;   // File handle that is open for read.
   public int maxLine;     // After input done, # lines in file.
   Node symbol[];          // The symtab handle of each line.
   int other[];            // Map of line# to line# in other file
@@ -104,8 +106,9 @@ class fileInfo {
     symbol = new Node [ MAXLINECOUNT+2 ];
     other  = null;    // allocated later!
     try {
-      file = new DataInputStream(
-          new FileInputStream( filename));
+      FileInputStream fStream = new FileInputStream(filename);
+      DataInputStream dStream = new DataInputStream(fStream);
+      file = new BufferedReader(new InputStreamReader(dStream));
     } catch (IOException e) {
       System.err.println("Diff can't read file " + filename );
       System.err.println("Error Exception was:" + e );
