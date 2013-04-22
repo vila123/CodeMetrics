@@ -1,109 +1,21 @@
-// Diff         Text file difference utility.
-// ----         Copyright 1987, 1989 by Donald C. Lindsay,
-//              School of Computer Science,  Carnegie Mellon University.
-//              Copyright 1982 by Symbionics.
-//              Use without fee is permitted when not for direct commercial
-//              advantage, and when credit to the source is given. Other uses
-//              require specific permission.
-// 
-// Converted from C to Java by Ian F. Darwin, http://www.darwinsys.com/, January, 1997.
-// Copyright 1997, Ian F. Darwin.
-// 
-// Conversion is NOT FULLY TESTED.
-// 
-// USAGE:      diff oldfile newfile
-// 
-// This program assumes that "oldfile" and "newfile" are text files.
-// The program writes to stdout a description of the changes which would
-// transform "oldfile" into "newfile".
-// 
-// The printout is in the form of commands, each followed by a block of
-// text. The text is delimited by the commands, which are:
-// 
-//    DELETE AT n
-//         ..deleted lines
-// 
-//    INSERT BEFORE n
-//         ..inserted lines
-// 
-//    n MOVED TO BEFORE n
-//         ..moved lines
-// 
-//    n CHANGED FROM
-//         ..old lines
-//    CHANGED TO
-//         ..newer lines
-// 
-// The line numbers all refer to the lines of the oldfile, as they are
-//    numbered before any commands are applied.
-// The text lines are printed as-is, without indentation or prefixing. The
-//    commands are printed in upper case, with a prefix of ">>>>", so that
-//    they will stand out. Other schemes may be preferred.
-// Files which contain more than MAXLINECOUNT lines cannot be processed.
-//    This can be fixed by changing "symbol" to a Vector.
-// The algorithm is taken from Communications of the ACM, Apr78 (21, 4, 264-),
-//    "A Technique for Isolating Differences Between Files."
-//    Ignoring I/O, and ignoring the symbol table, it should take O(N) time.
-//    This implementation takes fixed space, plus O(U) space for the symbol
-//    table (where U is the number of unique lines). Methods exist to change
-//    the fixed space to O(N) space.
-// Note that this is not the only interesting file-difference algorithm. In
-//    general, different algorithms draw different conclusions about the
-//    changes that have been made to the oldfile. This algorithm is sometimes
-//    "more right", particularly since it does not consider a block move to be 
-//    an insertion and a (separate) deletion. However, on some files it will be
-//    "less right". This is a consequence of the fact that files may contain
-//    many identical lines (particularly if they are program source). Each
-//    algorithm resolves the ambiguity in its own way, and the resolution
-//    is never guaranteed to be "right". However, it is often excellent.
-// This program is intended to be pedagogic.  Specifically, this program was
-//    the basis of the Literate Programming column which appeared in the
-//    Communications of the ACM (CACM), in the June 1989 issue (32, 6,
-//    740-755).
-// By "pedagogic", I do not mean that the program is gracefully worded, or
-//    that it showcases language features or its algorithm. I also do not mean
-//    that it is highly accessible to beginners, or that it is intended to be
-//    read in full, or in a particular order. Rather, this program is an
-//    example of one professional's style of keeping things organized and
-//    maintainable.
-// The program would be better if the "print" variables were wrapped into
-//    a struct. In general, grouping related variables in this way improves
-//    documentation, and adds the ability to pass the group in argument lists.
-// This program is a de-engineered version of a program which uses less
-//    memory and less time.  The article points out that the "symbol" arrays
-//    can be implemented as arrays of pointers to arrays, with dynamic
-//    allocation of the subarrays.  (In C, macros are very useful for hiding 
-//    the two-level accesses.) In Java, a Vector would be used. This allows an
-//    extremely large value for MAXLINECOUNT, without dedicating fixed arrays.
-//    (The "other" array can be allocated after the input phase, when the exact
-//    sizes are known.) The only slow piece of code is the "strcmp" in the tree
-//    descent: it can be speeded up by keeping a hash in the tree node, and
-//    only using "strcmp" when two hashes happen to be equal.
-
-
-
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-//////////////////////////////////////////////////////////////////////////////
-// Class: fileInfo
-//////////////////////////////////////////////////////////////////////////////
-
-class fileInfo {    
+class FileInf {    
   static final int MAXLINECOUNT = 20000;
   BufferedReader file;   // File handle that is open for read.
   public int maxLine;     // After input done, # lines in file.
-  Node symbol[];          // The symtab handle of each line.
+  NodeInf symbol[];          // The symtab handle of each line.
   int other[];            // Map of line# to line# in other file
-                          // ( -1 means don't-know ).
-                          // Allocated AFTER the lines are read.
+  // ( -1 means don't-know ).
+  // Allocated AFTER the lines are read.
 
   // Normal constructor with one filename; file is opened and saved.
-  fileInfo( String filename ) {
-    symbol = new Node [ MAXLINECOUNT+2 ];
+  FileInf( String filename ) {
+    symbol = new NodeInf [ MAXLINECOUNT+2 ];
     other  = null;    // allocated later!
     try {
       FileInputStream fStream = new FileInputStream(filename);
@@ -124,23 +36,17 @@ class fileInfo {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Class: Diff
+//Class: Differ
 //
-// The info is kept here per-file.
+//The info is kept here per-file.
 //////////////////////////////////////////////////////////////////////////////
 
-public class Diff {
-  // Code Churn
-  private int adLOC = 0; // Added Lines of Code
-  private int chLOC = 0; // Changed Lines of Code
-  private int dlLOC = 0; // Deleted Lines of Code
-  private int cChurn = 0; // Total Code Churn
-
+public class Differ {
   // block len > any possible real block len
   final int UNREAL=Integer.MAX_VALUE;
 
   // Keeps track of information about file1 and file2
-  fileInfo oldinfo, newinfo;
+  FileInf oldinfo, newinfo;
 
   //blocklen is the info about found blocks. 
   //It will be set to 0, except at the line#s where blocks start in the old file. 
@@ -151,35 +57,26 @@ public class Diff {
   //(pseudolines) at line# 0 and line# MAXLINECOUNT+1 (or less).
   int blocklen[];
 
-  public static void main(String argstrings[]) {
-//    if ( argstrings.length != 2 ) {
-//      System.err.println("Usage: diff oldfile newfile" );
-//      System.exit(1);
-//    }
-
-//    d.doDiff(argstrings[0], argstrings[1]);
-    
-    Diff d = new Diff();
-    d.doDiff("C:\\temp\\Diff.java", "C:\\dev\\201003\\workspace\\CodeMetrics\\src\\Diff.java");
-    
-    d.cChurn = d.adLOC+d.chLOC+d.dlLOC;
-    System.out.println("Added Lines of Code: " + d.adLOC);
-    System.out.println("Changed Lines of Code:" + d.chLOC);
-    System.out.println("Deleted Lines of Code: " + d.dlLOC);
-    System.out.println("Total Code Churn: " + d.cChurn);
-
+  public static void main(String argstrings[])
+  {
+    if ( argstrings.length != 2 ) {
+      System.err.println("Usage: diff oldfile newfile" );
+      System.exit(1);
+    }
+    Differ d = new Differ();
+    d.doDiff(argstrings[0], argstrings[1]);
     return;
   }
 
   // Constructor
-  Diff() {
+  Differ() {
   }
 
   // Do one file comparison. Called with both filenames.
   public void doDiff(String oldFile, String newFile) {
     System.out.println( ">>>> Difference of file \"" + oldFile + "\" and file \"" + newFile + "\".\n");
-    oldinfo = new fileInfo(oldFile);
-    newinfo = new fileInfo(newFile);
+    oldinfo = new FileInf(oldFile);
+    newinfo = new FileInf(newFile);
     // we don't process until we know both files really do exist.
     try {
       inputScan( oldinfo );
@@ -201,7 +98,7 @@ public class Diff {
   //Reads the file specified by pinfo.file.
   //Places the lines of that file in the symbol table.
   //Sets pinfo.maxLine to the number of lines found.
-  void inputScan( fileInfo pinfo ) throws IOException
+  void inputScan( FileInf pinfo ) throws IOException
   {
     String linebuffer;
     pinfo.maxLine = 0;
@@ -214,14 +111,14 @@ public class Diff {
   //Expects pinfo.maxLine initted: increments.
   //Places symbol table handle in pinfo.ymbol.
   //Expects pinfo is either oldinfo or newinfo.
-  void storeLine( String linebuffer, fileInfo pinfo )
+  void storeLine( String linebuffer, FileInf pinfo )
   {
     int linenum = ++pinfo.maxLine;    // note, no line zero
-    if ( linenum > fileInfo.MAXLINECOUNT ) {
+    if ( linenum > FileInf.MAXLINECOUNT ) {
       System.err.println( "MAXLINECOUNT exceeded, must stop." );
       System.exit(1);
     }
-    pinfo.symbol[ linenum ] = Node.addSymbol( linebuffer, pinfo == oldinfo, linenum );
+    pinfo.symbol[ linenum ] = NodeInf.addSymbol( linebuffer, pinfo == oldinfo, linenum );
   }
 
 
@@ -256,7 +153,7 @@ public class Diff {
   void scanUnique()
   {
     int oldline, newline;
-    Node psymbol;
+    NodeInf psymbol;
 
     for( newline = 1; newline <= newinfo.maxLine; newline++ ) {
       psymbol = newinfo.symbol[ newline ];
@@ -456,16 +353,13 @@ public class Diff {
         showmove();
     }
   }
-  
+
   //Part of printout.
   //Expects printoldline is at a deletion.
   void showdelete()
   {
-    if ( printstatus != delete ) {
-      //System.out.println( ">>>> DELETE AT " + printoldline);
-      System.out.println("DELETED");
-      dlLOC++;
-    }
+    if ( printstatus != delete )
+      System.out.println( ">>>> DELETE AT " + printoldline);
     printstatus = delete;
     oldinfo.symbol[ printoldline ].showSymbol();
     anyprinted = true;
@@ -476,16 +370,10 @@ public class Diff {
   //Expects printnewline is at an insertion.
   void showinsert()
   {
-    if ( printstatus == change ) {
-      //System.out.println( ">>>>     CHANGED TO" );
-      System.out.println("CHANGED");
-      chLOC++;
-    }
-    else if ( printstatus != insert ) { 
-      //System.out.println( ">>>> INSERT BEFORE " + printoldline );
-      System.out.println("ADDED");
-      adLOC++;
-    }
+    if ( printstatus == change ) 
+      System.out.println( ">>>>     CHANGED TO" );
+    else if ( printstatus != insert ) 
+      System.out.println( ">>>> INSERT BEFORE " + printoldline );
     printstatus = insert;
     newinfo.symbol[ printnewline ].showSymbol();
     anyprinted = true;
@@ -497,10 +385,8 @@ public class Diff {
   //Expects printoldline is a deletion.
   void showchange()
   {
-    if ( printstatus != change ) {
-      //System.out.println( ">>>> " + printoldline + " CHANGED FROM");
-      System.out.println("CHANGED FROM");
-    }
+    if ( printstatus != change ) 
+      System.out.println( ">>>> " + printoldline + " CHANGED FROM");
     printstatus = change;
     oldinfo.symbol[ printoldline ].showSymbol();
     anyprinted = true;
@@ -572,11 +458,7 @@ public class Diff {
       blocklen[newother] = -1;         // stamp block as "printed".
       System.out.println( ">>>> " + newother + " THRU " + (newother + newblock - 1) + " MOVED TO BEFORE " + printoldline );
       for( ; newblock > 0; newblock--, printnewline++ )
-      {
-        System.out.println("CHANGED");
-        chLOC++;
         newinfo.symbol[ printnewline ].showSymbol();
-      }
       anyprinted = true;
       printstatus = idle;
 
@@ -588,14 +470,14 @@ public class Diff {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Class: Node
+// Class: NodeInf
 // The symbol table routines in this class all understand the symbol table format,
 // which is a binary tree.
 // The methods are: addSymbol, symbolIsUnique, showSymbol.
 //////////////////////////////////////////////////////////////////////////////
 
-class Node {            // the tree is made up of these nodes
-  Node pleft, pright;
+class NodeInf {            // the tree is made up of these nodes
+  NodeInf pleft, pright;
   int linenum;
 
   static final int freshnode = 0,
@@ -604,11 +486,11 @@ class Node {            // the tree is made up of these nodes
   int /* enum linestates */ linestate;
   String line;
 
-  static Node panchor = null;     // symtab is a tree hung from this
+  static NodeInf panchor = null;     // symtab is a tree hung from this
 
   // Construct a new symbol table node and fill in its fields.
   // Parameter:  A line of the text file
-  Node( String pline)
+  NodeInf( String pline)
   {
     pleft = pright = null;
     linestate = freshnode;
@@ -619,25 +501,25 @@ class Node {            // the tree is made up of these nodes
   // Searches tree for a match to the line.
   // Parameter: a line of text
   // If node's linestate == freshnode, then created the node.
-  static Node matchsymbol( String pline )
+  static NodeInf matchsymbol( String pline )
   {
     int comparison;
-    Node pnode = panchor;
-    if ( panchor == null ) return panchor = new Node( pline);
+    NodeInf pnode = panchor;
+    if ( panchor == null ) return panchor = new NodeInf( pline);
     for(;;) {
       comparison = pnode.line.compareTo(pline);
       if ( comparison == 0 ) return pnode;          // found
 
       if ( comparison < 0 ) {
         if ( pnode.pleft == null ) {
-          pnode.pleft = new Node( pline);
+          pnode.pleft = new NodeInf( pline);
           return pnode.pleft;
         }
         pnode = pnode.pleft;
       }
       if ( comparison > 0 ) {
         if ( pnode.pright == null ) {
-          pnode.pright = new Node( pline);
+          pnode.pright = new NodeInf( pline);
           return pnode.pright;
         }
         pnode = pnode.pright;
@@ -649,9 +531,9 @@ class Node {            // the tree is made up of these nodes
   // Saves line into the symbol table.
   // Returns a handle to the symtab entry for that unique line.
   // If inoldfile nonzero, then linenum is remembered.
-  static Node addSymbol( String pline, boolean inoldfile, int linenum )
+  static NodeInf addSymbol( String pline, boolean inoldfile, int linenum )
   {
-    Node pnode;
+    NodeInf pnode;
     pnode = matchsymbol( pline );  // find the node in the tree
     if ( pnode.linestate == freshnode ) {
       pnode.linestate = inoldfile ? oldonce : newonce;
@@ -677,10 +559,6 @@ class Node {            // the tree is made up of these nodes
   // Prints the line to stdout.
   void showSymbol()
   {
-    System.out.println("-" + line);
+    System.out.println(line);
   }
 }
-
-
-
-
