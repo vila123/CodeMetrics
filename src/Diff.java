@@ -83,6 +83,14 @@ public class Diff {
 
     return;
   }
+  
+  public void print() {
+    cChurn = adLOC+chLOC+dlLOC;
+    System.out.println("Added Lines of Code: " + adLOC);
+    System.out.println("Changed Lines of Code:" + chLOC);
+    System.out.println("Deleted Lines of Code: " + dlLOC);
+    System.out.println("Total Code Churn: " + cChurn);
+  }
 
   // Constructor
   Diff() {
@@ -108,6 +116,7 @@ public class Diff {
 
     // Now do the work, and print the results.
     transform();
+    print();
   }
 
   //Reads the file specified by pinfo.file.
@@ -409,9 +418,9 @@ public class Diff {
     int newother = newFileInfo.other[ currentLineNewFile ];
     int newblock = blocklen[ newother ];
 
-    if ( newblock < 0 ) skipNewBlock();         // already printed.
-    else if ( oldblock >= newblock ) {     // assume new's blk moved.
-      blocklen[newother] = -1;         // stamp block as "printed".
+    if ( newblock < 0 ) skipNewBlock(); // already printed.
+    else if ( oldblock >= newblock ) {  // assume new's blk moved.
+      blocklen[newother] = -1;          // stamp block as "printed".
       System.out.println( ">>>> " + newother + " THRU " + (newother + newblock - 1) + " MOVED TO BEFORE " + currentLineOldFile );
       for( ; newblock > 0; newblock--, currentLineNewFile++ )
       {

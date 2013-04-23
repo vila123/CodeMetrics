@@ -5,65 +5,99 @@
 // -m module1=PATH1;PATH2 module2=PATH3
 // TODOD: Support for Java, C#, C++, XML
 
-import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
 
 public class CodeMetrics {
-  private SourceFiles srcFiles = null;
+  private SourceFiles oldFiles = null;
+  private SourceFiles newFiles = null;
+  static private String usage =
+      "Usage: CodeMetrics file [-options]\n" +
+      "  (to calculate metrics for a single source file)\n" +
+      "or  CodeMetrics path [-options]\n" +
+      "  (to traverse a directory and calculate metrics for all source files)\n" +
+      "or  CodeMetrics oldfile newfile [-options]\n" +
+      "  (to calculate metrics including code churn)\n" +
+      "\n" +
+      "where options include:\n" +
+      "  -ignoremove   Igmore moved code. Default behaviour is to count moved code as changed.\n" +
+      "  -verbose      Output more detailed metrics\n";
 
   CodeMetrics() {
-    srcFiles = new SourceFiles();
+    oldFiles = new SourceFiles();
+    newFiles = new SourceFiles();
   }
 
   public static void main(final String[] args) {
     CodeMetrics codeMetrics = new CodeMetrics();
+    File oldFile = null;
+    File newFile = null;
     
     // Check if we have a parameter
-    if (args.length == 0) {
-      System.out.println("ERROR: You need to give the path as argument!");
+    if (args.length == 0) {  
+      System.out.println(usage);
       System.exit(1);
     }
     // One parameter (Run Code Metrics without Code Churn)
     else if (args.length == 1) {
-      // Check if the parameter is a directory
-      File sDir = new File(args[0]);
-      if (!sDir.isDirectory()) {
-        codeMetrics.srcFiles.addSrcFile(sDir);
+      newFile = new File(args[0]);
+      
+      if (newFile.isDirectory()) {
+        // One directory
+        codeMetrics.newFiles.parseSrcDir(newFile);
+      }
+      else if (newFile.isFile()) {
+        // One file
+        codeMetrics.newFiles.addSrcFile(newFile);        
       }
       else {
-        codeMetrics.srcFiles.parseSrcDir(sDir);
+        System.out.println(usage);
+        System.exit(1);
       }
     }
     // Two parameters calculate all Code Metrics
     else if (args.length == 2) {
-      System.out.println("ERROR: Two parameters not yet supported.");
-      System.exit(1);
+      oldFile = new File(args[0]);
+      newFile = new File(args[1]);
+
+      if (oldFile.isDirectory() && newFile.isDirectory()) {
+        // Two directories
+      }
+      else if (oldFile.isFile() && newFile.isFile()) {
+        // Two files
+        codeMetrics.newFiles.addSrcFile(oldFile);
+        codeMetrics.newFiles.addSrcFile(newFile);
+      }
+      else {
+        System.out.println(usage);
+        System.exit(1);
+      }
     }
     
+    // Calculate Code Churn
+    if (oldFile != null && newFile != null) {
+      codeMetrics.countChurn(codeMetrics.oldFiles, codeMetrics.newFiles);
+    }
 
     // Calculate Cyclomatic Complexity
-    codeMetrics.countComplexity(codeMetrics.srcFiles);
+    codeMetrics.countComplexity(codeMetrics.newFiles);
 
     // Count LOC (Lines of Code)
-    codeMetrics.countLines(codeMetrics.srcFiles);
+    codeMetrics.countLines(codeMetrics.newFiles);
 
     // Print LOC information
-    for (int i = 0; i < codeMetrics.srcFiles.getNrOfFiles(); i++) {
-      System.out.println(codeMetrics.srcFiles.getSrcFile(i).getFileName() + "LOC: \t" + codeMetrics.srcFiles.getSrcFile(i).getLinesOfCode() + 
-          " stLOC: " + codeMetrics.srcFiles.getSrcFile(i).getLinesOfStatements() + 
-          " ccLOC: " + codeMetrics.srcFiles.getSrcFile(i).getLinesOfComments() + 
-          " trLOC: " + codeMetrics.srcFiles.getSrcFile(i).getTrivialLines() + 
-          " emLOC: " + codeMetrics.srcFiles.getSrcFile(i).getEmptyLines() + 
-          " CC: " + codeMetrics.srcFiles.getSrcFile(i).getComplexity());
+    for (int i = 0; i < codeMetrics.newFiles.getNrOfFiles(); i++) {
+      System.out.println(codeMetrics.newFiles.getSrcFile(i).getFileName() + "LOC: \t" + codeMetrics.newFiles.getSrcFile(i).getLinesOfCode() + 
+          " stLOC: " + codeMetrics.newFiles.getSrcFile(i).getLinesOfStatements() + 
+          " ccLOC: " + codeMetrics.newFiles.getSrcFile(i).getLinesOfComments() + 
+          " trLOC: " + codeMetrics.newFiles.getSrcFile(i).getTrivialLines() + 
+          " emLOC: " + codeMetrics.newFiles.getSrcFile(i).getEmptyLines() + 
+          " CC: " + codeMetrics.newFiles.getSrcFile(i).getComplexity());
     }
-    System.out.println("Total LOC: \t" + codeMetrics.srcFiles.getLinesOfCode() + 
-        " stLOC: " + codeMetrics.srcFiles.getLinesOfStatements() +
-        " ccLOC: " + codeMetrics.srcFiles.getLinesOfComments() + 
-        " trLOC: " + codeMetrics.srcFiles.getTrivialLines() + 
-        " emLOC: " + codeMetrics.srcFiles.getEmptyLines());
+    System.out.println("Total LOC: \t" + codeMetrics.newFiles.getLinesOfCode() + 
+        " stLOC: " + codeMetrics.newFiles.getLinesOfStatements() +
+        " ccLOC: " + codeMetrics.newFiles.getLinesOfComments() + 
+        " trLOC: " + codeMetrics.newFiles.getTrivialLines() + 
+        " emLOC: " + codeMetrics.newFiles.getEmptyLines());
     
     
     // Calculate Code Churn
@@ -79,6 +113,17 @@ public class CodeMetrics {
 //    System.out.println("Total Code Churn: " + d.cChurn);
   }
 
+  public void countChurn(final SourceFiles oldFiles, final SourceFiles newFiles) {
+    for (int i = 0; i < newFiles.getNrOfFiles(); i++) {
+      // oldFiles.getSrcFile(i).getFilePath();
+      // newFiles.getSrcFile(i)getFilePath();
+      
+      Diff d = new Diff();
+      d.doDiff(oldFiles.getSrcFile(i).getFilePath(), newFiles.getSrcFile(i).getFilePath());
+      d.countChurn();
+    }
+  }
+  
   public void countComplexity(final SourceFiles srcFiles) {
     for (int i = 0; i < srcFiles.getNrOfFiles(); i++) {
       //System.out.println(srcFiles.getSrcFile(i).getFilePath());
@@ -92,46 +137,7 @@ public class CodeMetrics {
     for (int i = 0; i < srcFiles.getNrOfFiles(); i++) {
       //System.out.println(srcFiles.getSrcFile(i).getFilePath());
 
-      try{
-        FileInputStream fStream = new FileInputStream(srcFiles.getSrcFile(i).getFilePath());
-        DataInputStream dStream = new DataInputStream(fStream);
-        BufferedReader bReader = new BufferedReader(new InputStreamReader(dStream));
-        String strLine;
-
-        //Read File Line By Line
-        while ((strLine = bReader.readLine()) != null) {
-          strLine = strLine.trim();
-
-          // This is a Line of Code (total)
-          srcFiles.getSrcFile(i).lineOfCode();
-
-          // This is an Empty Line (no visible characters)
-          if (strLine.length() == 0) {
-            srcFiles.getSrcFile(i).emptyLine();
-          }
-          // Trivial Lines ( ´{´ or ´}´)
-          else if (strLine.equals("{") || strLine.equals("}")) {
-            srcFiles.getSrcFile(i).trivialLine();
-          }
-          // Lines of Comments (single line of comment)
-          else if (strLine.startsWith("//") || strLine.startsWith("/*") || strLine.startsWith("*")) {
-            srcFiles.getSrcFile(i).lineOfComment();
-          }
-          // Lines of Statements (ending with ';')
-          else if (strLine.endsWith(";")) {
-            srcFiles.getSrcFile(i).lineOfStatement();
-          }
-          // Lines of Statements (methods, functions, conditions and statements)
-          else {
-            srcFiles.getSrcFile(i).lineOfStatement();
-            // System.out.println(strLine);
-          }
-        }
-        bReader.close();
-        dStream.close();
-      }catch (Exception e) {
-        System.err.println("Error: " + e.getMessage());
-      }
+      srcFiles.getSrcFile(i).countLines();
     }
   }
 }

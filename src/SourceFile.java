@@ -52,7 +52,51 @@ public class SourceFile {
     filePath = path;
   }
 
+  // Count Lines Of Code
+  public void countLines() {
+    try{
+      FileInputStream fStream = new FileInputStream(getFilePath());
+      DataInputStream dStream = new DataInputStream(fStream);
+      BufferedReader bReader = new BufferedReader(new InputStreamReader(dStream));
+      String strLine;
+
+      //Read File Line By Line
+      while ((strLine = bReader.readLine()) != null) {
+        strLine = strLine.trim();
+
+        // This is a Line of Code (total)
+        LOC++;
+
+        // This is an Empty Line (no visible characters)
+        if (strLine.length() == 0) {
+          emLOC++;
+        }
+        // Trivial Lines ( ´{´ or ´}´)
+        else if (strLine.equals("{") || strLine.equals("}")) {
+          trLOC++;
+        }
+        // Lines of Comments (single line of comment)
+        else if (strLine.startsWith("//") || strLine.startsWith("/*") || strLine.startsWith("*")) {
+          ccLOC++;
+        }
+        // Lines of Statements (ending with ';')
+        else if (strLine.endsWith(";")) {
+          stLOC++;
+        }
+        // Lines of Statements (methods, functions, conditions and statements)
+        else {
+          stLOC++;
+        }
+      }
+      bReader.close();
+      dStream.close();
+    }catch (Exception e) {
+      System.err.println("Error: " + e.getMessage());
+    }
+  }
+  
   // Calculate the complexity for each method in the private ArrayList<Method>
+  // (Need to populate the private ArrayList by using getMethods() first)
   public void countComplexity() {
     if (methodList.size() > 0) {
       for (Method method : methodList) {
@@ -365,27 +409,6 @@ public class SourceFile {
   }
 
   // LOC Metrics
-
-  public void lineOfCode() {
-    LOC++;
-  }
-
-  public void lineOfStatement() {
-    stLOC++;
-  }
-
-  public void lineOfComment() {
-    ccLOC++;
-  }
-
-  public void trivialLine() {
-    trLOC++;
-  }
-
-  public void emptyLine() {
-    emLOC++;
-  }
-
   public int getLinesOfCode() {
     return LOC;
   }
