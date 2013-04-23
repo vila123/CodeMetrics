@@ -139,8 +139,8 @@ public class Diff {
   // block len > any possible real block len
   final int UNREAL=Integer.MAX_VALUE;
 
-  // Keeps track of information about file1 and file2
-  fileInfo oldinfo, newinfo;
+  // Keeps track of information about old file and new file
+  fileInfo oldFileInfo, newFileInfo;
 
   //blocklen is the info about found blocks. 
   //It will be set to 0, except at the line#s where blocks start in the old file. 
@@ -152,16 +152,13 @@ public class Diff {
   int blocklen[];
 
   public static void main(String argstrings[]) {
-//    if ( argstrings.length != 2 ) {
-//      System.err.println("Usage: diff oldfile newfile" );
-//      System.exit(1);
-//    }
-
-//    d.doDiff(argstrings[0], argstrings[1]);
-    
+    if ( argstrings.length != 2 ) {
+      System.err.println("Usage: diff oldfile newfile" );
+      System.exit(1);
+    }
     Diff d = new Diff();
-    d.doDiff("C:\\temp\\Diff.java", "C:\\dev\\201003\\workspace\\CodeMetrics\\src\\Diff.java");
-    
+    d.doDiff(argstrings[0], argstrings[1]);
+
     d.cChurn = d.adLOC+d.chLOC+d.dlLOC;
     System.out.println("Added Lines of Code: " + d.adLOC);
     System.out.println("Changed Lines of Code:" + d.chLOC);
@@ -178,24 +175,24 @@ public class Diff {
   // Do one file comparison. Called with both filenames.
   public void doDiff(String oldFile, String newFile) {
     System.out.println( ">>>> Difference of file \"" + oldFile + "\" and file \"" + newFile + "\".\n");
-    oldinfo = new fileInfo(oldFile);
-    newinfo = new fileInfo(newFile);
+    oldFileInfo = new fileInfo(oldFile);
+    newFileInfo = new fileInfo(newFile);
     // we don't process until we know both files really do exist.
     try {
-      inputScan( oldinfo );
-      inputScan( newinfo );
+      inputScan( oldFileInfo );
+      inputScan( newFileInfo );
     } catch (IOException e) {
       System.err.println("Read error: " + e);
     }
 
     // Now that we've read all the lines, allocate some arrays.
-    blocklen = new int[ (oldinfo.maxLine>newinfo.maxLine ? oldinfo.maxLine : newinfo.maxLine) + 2 ];
-    oldinfo.alloc();
-    newinfo.alloc();
+    blocklen = new int[ (oldFileInfo.maxLine>newFileInfo.maxLine ? oldFileInfo.maxLine : newFileInfo.maxLine) + 2 ];
+    oldFileInfo.alloc();
+    newFileInfo.alloc();
 
     // Now do the work, and print the results.
     transform();
-    printout();
+    countChurn();
   }
 
   //Reads the file specified by pinfo.file.
@@ -221,7 +218,7 @@ public class Diff {
       System.err.println( "MAXLINECOUNT exceeded, must stop." );
       System.exit(1);
     }
-    pinfo.symbol[ linenum ] = Node.addSymbol( linebuffer, pinfo == oldinfo, linenum );
+    pinfo.symbol[ linenum ] = Node.addSymbol( linebuffer, pinfo == oldFileInfo, linenum );
   }
 
 
@@ -232,14 +229,14 @@ public class Diff {
   void transform()
   {                                  
     int oldline, newline;
-    int oldmax = oldinfo.maxLine + 2;  // Count pseudolines at
-    int newmax = newinfo.maxLine + 2;  // ..front and rear of file
+    int oldmax = oldFileInfo.maxLine + 2;  // Count pseudolines at
+    int newmax = newFileInfo.maxLine + 2;  // ..front and rear of file
 
     for (oldline=0; oldline < oldmax; oldline++ ) {
-      oldinfo.other[oldline]= -1;
+      oldFileInfo.other[oldline]= -1;
     }
     for (newline=0; newline < newmax; newline++ ) {
-      newinfo.other[newline]= -1;
+      newFileInfo.other[newline]= -1;
     }
 
     scanUnique();  // scan for lines used once in both files
@@ -258,18 +255,18 @@ public class Diff {
     int oldline, newline;
     Node psymbol;
 
-    for( newline = 1; newline <= newinfo.maxLine; newline++ ) {
-      psymbol = newinfo.symbol[ newline ];
+    for( newline = 1; newline <= newFileInfo.maxLine; newline++ ) {
+      psymbol = newFileInfo.symbol[ newline ];
       if ( psymbol.symbolIsUnique()) {        // 1 use in each file
         oldline = psymbol.linenum;
-        newinfo.other[ newline ] = oldline;   // record 1-1 map
-        oldinfo.other[ oldline ] = newline;
+        newFileInfo.other[ newline ] = oldline;   // record 1-1 map
+        oldFileInfo.other[ oldline ] = newline;
       }
     }
-    newinfo.other[ 0 ] = 0;
-    oldinfo.other[ 0 ] = 0;
-    newinfo.other[ newinfo.maxLine + 1 ] = oldinfo.maxLine + 1;
-    oldinfo.other[ oldinfo.maxLine + 1 ] = newinfo.maxLine + 1;
+    newFileInfo.other[ 0 ] = 0;
+    oldFileInfo.other[ 0 ] = 0;
+    newFileInfo.other[ newFileInfo.maxLine + 1 ] = oldFileInfo.maxLine + 1;
+    oldFileInfo.other[ oldFileInfo.maxLine + 1 ] = newFileInfo.maxLine + 1;
   }
 
 
@@ -282,30 +279,30 @@ public class Diff {
   {
     int oldline, newline;
 
-    for( newline = 0; newline <= newinfo.maxLine; newline++ ) {
-      oldline = newinfo.other[ newline ];
+    for( newline = 0; newline <= newFileInfo.maxLine; newline++ ) {
+      oldline = newFileInfo.other[ newline ];
       if ( oldline >= 0 ) {   // is unique in old & new
         for(;;) {             // scan after there in both files
-          if ( ++oldline > oldinfo.maxLine   ) {
+          if ( ++oldline > oldFileInfo.maxLine   ) {
             break; 
           }
-          if ( oldinfo.other[ oldline ] >= 0 ) { 
+          if ( oldFileInfo.other[ oldline ] >= 0 ) { 
             break;
           }
-          if ( ++newline > newinfo.maxLine   ) { 
+          if ( ++newline > newFileInfo.maxLine   ) { 
             break; 
           }
-          if ( newinfo.other[ newline ] >= 0 ) { 
+          if ( newFileInfo.other[ newline ] >= 0 ) { 
             break;
           }
           // oldline & newline exist, and aren't already matched
 
-          if ( newinfo.symbol[ newline ] != oldinfo.symbol[ oldline ] ) { 
+          if ( newFileInfo.symbol[ newline ] != oldFileInfo.symbol[ oldline ] ) { 
             break;  // not same
           }
 
-          newinfo.other[newline] = oldline; // record a match
-          oldinfo.other[oldline] = newline;
+          newFileInfo.other[newline] = oldline; // record a match
+          oldFileInfo.other[oldline] = newline;
         }
       }
     }
@@ -318,30 +315,30 @@ public class Diff {
   {
     int oldline, newline;
 
-    for( newline = newinfo.maxLine + 1; newline > 0; newline-- ) {
-      oldline = newinfo.other[ newline ];
+    for( newline = newFileInfo.maxLine + 1; newline > 0; newline-- ) {
+      oldline = newFileInfo.other[ newline ];
       if ( oldline >= 0 ) {   // unique in each
         for(;;) {
           if ( --oldline <= 0 ) {
             break;
           }
-          if ( oldinfo.other[ oldline ] >= 0 ) { 
+          if ( oldFileInfo.other[ oldline ] >= 0 ) { 
             break;
           }
           if ( --newline <= 0 ) { 
             break;
           }
-          if ( newinfo.other[ newline ] >= 0 ) { 
+          if ( newFileInfo.other[ newline ] >= 0 ) { 
             break;
           }
           // oldline and newline exist, and aren't marked yet
 
-          if ( newinfo.symbol[ newline ] != oldinfo.symbol[ oldline ] ) {
+          if ( newFileInfo.symbol[ newline ] != oldFileInfo.symbol[ oldline ] ) {
             break;  // not same
           }
 
-          newinfo.other[newline] = oldline; // record a match
-          oldinfo.other[oldline] = newline;
+          newFileInfo.other[newline] = oldline; // record a match
+          oldFileInfo.other[oldline] = newline;
         }
       }
     }
@@ -357,13 +354,13 @@ public class Diff {
     int oldfront = 0;      // line# of front of a block in old, or 0 
     int newlast = -1;      // newline's value during prev. iteration
 
-    for( oldline = 1; oldline <= oldinfo.maxLine; oldline++ ) {
+    for( oldline = 1; oldline <= oldFileInfo.maxLine; oldline++ ) {
       blocklen[ oldline ] = 0;
     }
-    blocklen[ oldinfo.maxLine + 1 ] = UNREAL; // starts a mythical blk
+    blocklen[ oldFileInfo.maxLine + 1 ] = UNREAL; // starts a mythical blk
 
-    for( oldline = 1; oldline <= oldinfo.maxLine; oldline++ ) {
-      newline = oldinfo.other[ oldline ];
+    for( oldline = 1; oldline <= oldFileInfo.maxLine; oldline++ ) {
+      newline = oldFileInfo.other[ oldline ];
       if ( newline < 0 ) {
         oldfront = 0;  // no match: not in block
       }
@@ -381,207 +378,199 @@ public class Diff {
   }
 
   //////////////////////////////////////////////////////////////////////////////
-  // The following are global to printout's subsidiary routines
-  // enum { idle, delete, insert, movenew, moveold, same, change } printstatus;
+  // The following part will Calculate the Code Churn
+  // 
   //////////////////////////////////////////////////////////////////////////////
   
-  public static final int idle = 0, delete = 1, insert = 2, movenew = 3, moveold = 4, same = 5, change = 6;
-  int printstatus;
+  public static final int idle = 0, deleted = 1, added = 2, movenew = 3, moveold = 4, same = 5, changed = 6;
+  int diffStatus;
+  int churnStatus;
   boolean anyprinted;
-  int printoldline, printnewline;     // line numbers in old & new file
+  int currentLineOldFile, currentLineNewFile;     // line numbers in old & new file
 
-  //Prints summary to stdout.
-  //Expects all data structures have been filled out.
-  void printout()
+
+  // Calculate Code Churn
+  // Expects all data structures have been filled out.
+  void countChurn()
   {
-    printstatus = idle;
+    diffStatus = idle;
     anyprinted = false;
-    for( printoldline = printnewline = 1; ; ) {
-      if ( printoldline > oldinfo.maxLine ) { 
-        newconsume(); 
+    for( currentLineOldFile = currentLineNewFile = 1; ; ) {
+      if ( currentLineOldFile > oldFileInfo.maxLine ) { 
+        consumeNew(); 
         break;
       }
-      if ( printnewline > newinfo.maxLine ) { 
-        oldconsume(); 
+      if ( currentLineNewFile > newFileInfo.maxLine ) { 
+        consumeOld(); 
         break;
       }
-      if ( newinfo.other[ printnewline ] < 0 ) {
-        if ( oldinfo.other[ printoldline ] < 0 )
-          showchange();
+      if ( newFileInfo.other[ currentLineNewFile ] < 0 ) {
+        if ( oldFileInfo.other[ currentLineOldFile ] < 0 )
+          countChange();
         else
-          showinsert();
+          countInsert();
       }
-      else if ( oldinfo.other[ printoldline ] < 0 )
-        showdelete();
-      else if ( blocklen[ printoldline ] < 0 )
-        skipold();
-      else if ( oldinfo.other[ printoldline ] == printnewline )
-        showsame();
+      else if ( oldFileInfo.other[ currentLineOldFile ] < 0 )
+        countDelete();
+      else if ( blocklen[ currentLineOldFile ] < 0 )
+        skipOldBlock();
+      else if ( oldFileInfo.other[ currentLineOldFile ] == currentLineNewFile )
+        countSame();
       else
-        showmove();
+        countMove();
     }
     if ( anyprinted == true ) 
       System.out.println( ">>>> End of differences."  );
     else
       System.out.println( ">>>> Files are identical." );
   }
-
-  //Part of printout. Have run out of old file. 
-  //Print the rest of the new file, as inserts and/or moves.
-  void newconsume()
+  
+  // Expects currentLineOldFile is at a deletion.
+  void countDelete()
   {
-    for(;;) {
-      if ( printnewline > newinfo.maxLine )
-        break;        // end of file
-      if ( newinfo.other[ printnewline ] < 0 ) 
-        showinsert();
-      else
-        showmove();
+    if ( diffStatus != deleted ) {
+      //System.out.println( ">>>> DELETE AT " + currentLineOldFile);
+      System.out.println("DELETED");
     }
+    diffStatus = deleted;
+    oldFileInfo.symbol[ currentLineOldFile ].showSymbol();
+    dlLOC++;
+    anyprinted = true;
+    currentLineOldFile++;
   }
 
-  //Part of printout. Have run out of new file.
-  //Process the rest of the old file, printing any parts which were deletes or moves.
-  void oldconsume()
+  // Expects currentLineNewFile is at an add.
+  void countInsert()
   {
-    for(;;) {
-      if ( printoldline > oldinfo.maxLine )
-        break;       // end of file
-      printnewline = oldinfo.other[ printoldline ];
-      if ( printnewline < 0 ) 
-        showdelete();
-      else if ( blocklen[ printoldline ] < 0 ) 
-        skipold();
-      else 
-        showmove();
+
+    if ( diffStatus == changed ) {
+      System.out.println( "CHANGED" );
+      churnStatus = changed;
     }
+    else if ( diffStatus != added ) { 
+      System.out.println( "ADDED");
+      churnStatus = added;
+    }
+
+    diffStatus = added;
+    newFileInfo.symbol[ currentLineNewFile ].showSymbol();
+
+    if (churnStatus == changed )
+      chLOC++;
+    else if (churnStatus == added)
+      adLOC++;
+
+    anyprinted = true;
+    currentLineNewFile++;
+  }
+
+  // Expects currentLineNewFile is ADDED.
+  // Expects currentLineOldFile is at a deletion.
+  void countChange()
+  {
+    diffStatus = changed;
+    anyprinted = true;
+    currentLineOldFile++;
+  }
+
+  // Expects currentLineNewFile and currentLineOldFile at start of two blocks that aren't to be displayed.
+  void countSame()
+  {
+    int count;
+    diffStatus = idle;
+    if ( newFileInfo.other[ currentLineNewFile ] != currentLineOldFile ) {
+      System.err.println("BUG IN LINE REFERENCING");
+      System.exit(1);
+    }
+    count = blocklen[ currentLineOldFile ];
+    currentLineOldFile += count;
+    currentLineNewFile += count;
+  }
+
+  // Expects currentLineOldFile, currentLineNewFile at start of two different blocks ( a move was done).
+  void countMove()
+  {
+    int oldblock = blocklen[ currentLineOldFile ];
+    int newother = newFileInfo.other[ currentLineNewFile ];
+    int newblock = blocklen[ newother ];
+
+    if ( newblock < 0 ) skipNewBlock();         // already printed.
+    else if ( oldblock >= newblock ) {     // assume new's blk moved.
+      blocklen[newother] = -1;         // stamp block as "printed".
+      System.out.println( ">>>> " + newother + " THRU " + (newother + newblock - 1) + " MOVED TO BEFORE " + currentLineOldFile );
+      for( ; newblock > 0; newblock--, currentLineNewFile++ )
+      {
+        newFileInfo.symbol[ currentLineNewFile ].showSymbol();
+        chLOC++;
+      }
+      anyprinted = true;
+      diffStatus = idle;
+
+    } else        // assume old's block moved
+      skipOldBlock();  // target line# not known, display later
   }
   
-  //Part of printout.
-  //Expects printoldline is at a deletion.
-  void showdelete()
+  // Skips over the old block.
+  // Expects currentLineOldFile at start of an old block that has already been announced as a move.
+  void skipOldBlock()
   {
-    if ( printstatus != delete ) {
-      //System.out.println( ">>>> DELETE AT " + printoldline);
-      System.out.println("DELETED");
-      dlLOC++;
-    }
-    printstatus = delete;
-    oldinfo.symbol[ printoldline ].showSymbol();
-    anyprinted = true;
-    printoldline++;
-  }
-
-  //Part of printout.
-  //Expects printnewline is at an insertion.
-  void showinsert()
-  {
-    if ( printstatus == change ) {
-      //System.out.println( ">>>>     CHANGED TO" );
-      System.out.println("CHANGED");
-      chLOC++;
-    }
-    else if ( printstatus != insert ) { 
-      //System.out.println( ">>>> INSERT BEFORE " + printoldline );
-      System.out.println("ADDED");
-      adLOC++;
-    }
-    printstatus = insert;
-    newinfo.symbol[ printnewline ].showSymbol();
-    anyprinted = true;
-    printnewline++;
-  }
-
-  //Part of printout.
-  //Expects printnewline is an insertion.
-  //Expects printoldline is a deletion.
-  void showchange()
-  {
-    if ( printstatus != change ) {
-      //System.out.println( ">>>> " + printoldline + " CHANGED FROM");
-      System.out.println("CHANGED FROM");
-    }
-    printstatus = change;
-    oldinfo.symbol[ printoldline ].showSymbol();
-    anyprinted = true;
-    printoldline++;
-  }
-
-  //Part of printout.
-  //Expects printoldline at start of an old block that has already been announced as a move.
-  //Skips over the old block.
-  void skipold()
-  {
-    printstatus = idle;
+    diffStatus = idle;
     for(;;) {
-      if ( ++printoldline > oldinfo.maxLine )
+      if ( ++currentLineOldFile > oldFileInfo.maxLine )
         break;    // end of file
-      if ( oldinfo.other[ printoldline ] < 0 )
+      if ( oldFileInfo.other[ currentLineOldFile ] < 0 )
         break;    // end of block
-      if ( blocklen[ printoldline ]!=0)
+      if ( blocklen[ currentLineOldFile ]!=0)
         break;    // start of another
     }
   }
 
-  //Part of printout.
-  //Expects printnewline is at start of a new block that has
-  //already been announced as a move.
-  //Skips over the new block.
-  void skipnew()
+  // Skips over the new block.
+  // Expects currentLineNewFile is at start of a new block that has already been announced as a move.
+  void skipNewBlock()
   {
     int oldline;
-    printstatus = idle;
+    diffStatus = idle;
     for(;;) {
-      if ( ++printnewline > newinfo.maxLine )
+      if ( ++currentLineNewFile > newFileInfo.maxLine )
         break;    // end of file
-      oldline = newinfo.other[ printnewline ];
+      oldline = newFileInfo.other[ currentLineNewFile ];
       if ( oldline < 0 )
         break;    // end of block
       if ( blocklen[ oldline ] != 0)
         break;    // start of another
     }
   }
-
-  //Part of printout.
-  //Expects printnewline and printoldline at start of
-  //two blocks that aren't to be displayed.
-  void showsame()
+  
+  // Have run out of old file. 
+  // Print the rest of the new file, as inserts and/or moves.
+  void consumeNew()
   {
-    int count;
-    printstatus = idle;
-    if ( newinfo.other[ printnewline ] != printoldline ) {
-      System.err.println("BUG IN LINE REFERENCING");
-      System.exit(1);
+    for(;;) {
+      if ( currentLineNewFile > newFileInfo.maxLine )
+        break;        // end of file
+      if ( newFileInfo.other[ currentLineNewFile ] < 0 ) 
+        countInsert();
+      else
+        countMove();
     }
-    count = blocklen[ printoldline ];
-    printoldline += count;
-    printnewline += count;
   }
 
-  //Part of printout.
-  //Expects printoldline, printnewline at start of
-  //two different blocks ( a move was done).
-  void showmove()
+  // Have run out of new file.
+  // Process the rest of the old file, printing any parts which were deletes or moves.
+  void consumeOld()
   {
-    int oldblock = blocklen[ printoldline ];
-    int newother = newinfo.other[ printnewline ];
-    int newblock = blocklen[ newother ];
-
-    if ( newblock < 0 ) skipnew();         // already printed.
-    else if ( oldblock >= newblock ) {     // assume new's blk moved.
-      blocklen[newother] = -1;         // stamp block as "printed".
-      System.out.println( ">>>> " + newother + " THRU " + (newother + newblock - 1) + " MOVED TO BEFORE " + printoldline );
-      for( ; newblock > 0; newblock--, printnewline++ )
-      {
-        System.out.println("CHANGED");
-        chLOC++;
-        newinfo.symbol[ printnewline ].showSymbol();
-      }
-      anyprinted = true;
-      printstatus = idle;
-
-    } else        // assume old's block moved
-      skipold();  // target line# not known, display later
+    for(;;) {
+      if ( currentLineOldFile > oldFileInfo.maxLine )
+        break;       // end of file
+      currentLineNewFile = oldFileInfo.other[ currentLineOldFile ];
+      if ( currentLineNewFile < 0 ) 
+        countDelete();
+      else if ( blocklen[ currentLineOldFile ] < 0 ) 
+        skipOldBlock();
+      else 
+        countMove();
+    }
   }
 };        
 
@@ -677,7 +666,7 @@ class Node {            // the tree is made up of these nodes
   // Prints the line to stdout.
   void showSymbol()
   {
-    System.out.println("-" + line);
+    System.out.println(line);
   }
 }
 
