@@ -19,21 +19,30 @@ public class CodeMetrics {
   }
 
   public static void main(final String[] args) {
-    // Check if we have a parameter
-    if (args.length == 0 ) {
-      System.out.println("ERROR: You need to give the path as argument!");
-      return;
-    }
-
-    // Check if the parameter is a directory
-    File sDir = new File(args[0]);
-    if (!sDir.isDirectory()) {
-      System.out.println("ERROR: Parameter one needs to be a directory");
-      return;
-    }
-
     CodeMetrics codeMetrics = new CodeMetrics();
-    codeMetrics.srcFiles.parseSrcDir(sDir);
+    
+    // Check if we have a parameter
+    if (args.length == 0) {
+      System.out.println("ERROR: You need to give the path as argument!");
+      System.exit(1);
+    }
+    // One parameter (Run Code Metrics without Code Churn)
+    else if (args.length == 1) {
+      // Check if the parameter is a directory
+      File sDir = new File(args[0]);
+      if (!sDir.isDirectory()) {
+        codeMetrics.srcFiles.addSrcFile(sDir);
+      }
+      else {
+        codeMetrics.srcFiles.parseSrcDir(sDir);
+      }
+    }
+    // Two parameters calculate all Code Metrics
+    else if (args.length == 2) {
+      System.out.println("ERROR: Two parameters not yet supported.");
+      System.exit(1);
+    }
+    
 
     // Calculate Cyclomatic Complexity
     codeMetrics.countComplexity(codeMetrics.srcFiles);
@@ -55,6 +64,19 @@ public class CodeMetrics {
         " ccLOC: " + codeMetrics.srcFiles.getLinesOfComments() + 
         " trLOC: " + codeMetrics.srcFiles.getTrivialLines() + 
         " emLOC: " + codeMetrics.srcFiles.getEmptyLines());
+    
+    
+    // Calculate Code Churn
+//    Diff d = new Diff();
+//    d.doDiff(args[0], args[1]);
+//    d.countChurn();
+//
+//    // Print Code Churn information
+//    d.cChurn = d.adLOC+d.chLOC+d.dlLOC;
+//    System.out.println("Added Lines of Code: " + d.adLOC);
+//    System.out.println("Changed Lines of Code:" + d.chLOC);
+//    System.out.println("Deleted Lines of Code: " + d.dlLOC);
+//    System.out.println("Total Code Churn: " + d.cChurn);
   }
 
   public void countComplexity(final SourceFiles srcFiles) {

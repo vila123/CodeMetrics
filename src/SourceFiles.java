@@ -37,6 +37,18 @@ public class SourceFiles {
       }
     }
   }
+  
+  // Only work with one source file 
+  public void addSrcFile(final File sFile) {
+    if (sFile.getName().endsWith("java") && sFile.isFile()) {
+      SourceFile javaSource = new SourceFile(sFile.getName(), sFile.getAbsolutePath());
+      srcList.add(javaSource);
+    }
+    else {
+      System.out.println("ERROR: File type is not yet supported. Only support for java files.");
+      System.exit(1);
+    }
+  }
 
   // Return the total number of source code files
   public int getNrOfFiles() {
