@@ -52,6 +52,14 @@ public class SourceFile {
     filePath = path;
   }
 
+  // Implement smarter!
+  public void print() {
+    for (int j =0; j < methodList.size(); j++) {
+      System.out.println("Method: " + methodList.get(j).getMethodName() + "\t Complexity: " +
+      methodList.get(j).getComplexity());
+    }
+  }
+  
   // Count Lines Of Code
   public void countLines() {
     try{
@@ -318,7 +326,7 @@ public class SourceFile {
 
   // Is this a method declaration?
   private boolean isMethod(final String strLine) {
-    if (!isSelections(strLine) && !isLoops(strLine) && !isExceptions(strLine) && !strLine.contains(" class ")) {
+    if (!isSelections(strLine) && !isLoops(strLine) && !isExceptions(strLine) && !strLine.contains("class ")) {
       return true;
     }
     return false;
@@ -408,6 +416,15 @@ public class SourceFile {
     return filePath;
   }
 
+  // Return the total number of methods
+  public int getNrOfMethods() {
+    return methodList.size();
+  }
+
+  public Method getMethod(final int index) {
+    return methodList.get(index);
+  }
+  
   // LOC Metrics
   public int getLinesOfCode() {
     return LOC;
@@ -430,10 +447,16 @@ public class SourceFile {
   }
   
   // Complexity mertics
-  
   public float getComplexity() {
-      return (float)CC/methodList.size();
+      return (float)CC;
   }
+  
+  public float getAvgComplexity() {
+    if (CC != 0) {
+      return (float)CC/methodList.size();
+    }
+    return (float) 0;
+}
 
   // Code Churn Metrics
 

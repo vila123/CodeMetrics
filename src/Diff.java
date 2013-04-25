@@ -122,8 +122,7 @@ public class Diff {
   //Reads the file specified by pinfo.file.
   //Places the lines of that file in the symbol table.
   //Sets pinfo.maxLine to the number of lines found.
-  void inputScan( fileInfo pinfo ) throws IOException
-  {
+  void inputScan( fileInfo pinfo ) throws IOException {
     String linebuffer;
     pinfo.maxLine = 0;
     while ((linebuffer = pinfo.file.readLine()) != null) {
@@ -135,8 +134,7 @@ public class Diff {
   //Expects pinfo.maxLine initted: increments.
   //Places symbol table handle in pinfo.ymbol.
   //Expects pinfo is either oldinfo or newinfo.
-  void storeLine( String linebuffer, fileInfo pinfo )
-  {
+  void storeLine( String linebuffer, fileInfo pinfo ) {
     int linenum = ++pinfo.maxLine;    // note, no line zero
     if ( linenum > fileInfo.MAXLINECOUNT ) {
       System.err.println( "MAXLINECOUNT exceeded, must stop." );
@@ -145,13 +143,11 @@ public class Diff {
     pinfo.symbol[ linenum ] = Node.addSymbol( linebuffer, pinfo == oldFileInfo, linenum );
   }
 
-
   //Analyzes the file differences and leaves its findings in
   //the global arrays oldinfo.other, newinfo.other, and blocklen.
   //Expects both files in symtab.
   //Expects valid "maxLine" and "symbol" in oldinfo and newinfo.
-  void transform()
-  {                                  
+  void transform() {                                  
     int oldline, newline;
     int oldmax = oldFileInfo.maxLine + 2;  // Count pseudolines at
     int newmax = newFileInfo.maxLine + 2;  // ..front and rear of file
@@ -169,13 +165,11 @@ public class Diff {
     scanBlocks();  // find the fronts and lengths of blocks
   }
 
-
   //Scans for lines which are used exactly once in each file.
   //Expects both files in symtab, and oldinfo and newinfo valid.
   //The appropriate "other" array entries are set to the line# in the other file.
   //Claims pseudo-lines at 0 and XXXinfo.maxLine+1 are unique.
-  void scanUnique()
-  {
+  void scanUnique() {
     int oldline, newline;
     Node psymbol;
 
@@ -193,14 +187,12 @@ public class Diff {
     oldFileInfo.other[ oldFileInfo.maxLine + 1 ] = newFileInfo.maxLine + 1;
   }
 
-
   //Expects both files in symtab, and oldinfo and newinfo valid.
   //Expects the "other" arrays contain positive #s to indicate lines that are unique in both files.
   //For each such pair of places, scans past in each file.
   //Contiguous groups of lines that match non-uniquely are taken to be good-enough matches, and so marked in "other".
   //Assumes each other[0] is 0.
-  void scanAfter()
-  {
+  void scanAfter() {
     int oldline, newline;
 
     for( newline = 0; newline <= newFileInfo.maxLine; newline++ ) {
@@ -232,11 +224,9 @@ public class Diff {
     }
   }
 
-
   //As scanafter, except scans towards file fronts.
   //Assumes the off-end lines have been marked as a match.
-  void scanBefore()
-  {
+  void scanBefore() {
     int oldline, newline;
 
     for( newline = newFileInfo.maxLine + 1; newline > 0; newline-- ) {
@@ -268,12 +258,10 @@ public class Diff {
     }
   }
 
-
   //Finds the beginnings and lengths of blocks of matches.
   //Sets the blocklen array (see definition).
   //Expects oldinfo valid.
-  void scanBlocks()
-  {
+  void scanBlocks() {
     int oldline, newline;
     int oldfront = 0;      // line# of front of a block in old, or 0 
     int newlast = -1;      // newline's value during prev. iteration
@@ -315,8 +303,7 @@ public class Diff {
 
   // Calculate Code Churn
   // Expects all data structures have been filled out.
-  void countChurn()
-  {
+  void countChurn() {
     diffStatus = idle;
     anyprinted = false;
     for( currentLineOldFile = currentLineNewFile = 1; ; ) {
@@ -350,8 +337,7 @@ public class Diff {
   }
   
   // Expects currentLineOldFile is at a deletion.
-  void countDelete()
-  {
+  void countDelete() {
     if ( diffStatus != deleted ) {
       //System.out.println( ">>>> DELETE AT " + currentLineOldFile);
       System.out.println("DELETED");
@@ -364,9 +350,7 @@ public class Diff {
   }
 
   // Expects currentLineNewFile is at an add.
-  void countInsert()
-  {
-
+  void countInsert() {
     if ( diffStatus == changed ) {
       System.out.println( "CHANGED" );
       churnStatus = changed;
@@ -390,16 +374,14 @@ public class Diff {
 
   // Expects currentLineNewFile is ADDED.
   // Expects currentLineOldFile is at a deletion.
-  void countChange()
-  {
+  void countChange() {
     diffStatus = changed;
     anyprinted = true;
     currentLineOldFile++;
   }
 
   // Expects currentLineNewFile and currentLineOldFile at start of two blocks that aren't to be displayed.
-  void countSame()
-  {
+  void countSame() {
     int count;
     diffStatus = idle;
     if ( newFileInfo.other[ currentLineNewFile ] != currentLineOldFile ) {
@@ -412,8 +394,7 @@ public class Diff {
   }
 
   // Expects currentLineOldFile, currentLineNewFile at start of two different blocks ( a move was done).
-  void countMove()
-  {
+  void countMove() {
     int oldblock = blocklen[ currentLineOldFile ];
     int newother = newFileInfo.other[ currentLineNewFile ];
     int newblock = blocklen[ newother ];
@@ -436,8 +417,7 @@ public class Diff {
   
   // Skips over the old block.
   // Expects currentLineOldFile at start of an old block that has already been announced as a move.
-  void skipOldBlock()
-  {
+  void skipOldBlock() {
     diffStatus = idle;
     for(;;) {
       if ( ++currentLineOldFile > oldFileInfo.maxLine )
@@ -451,8 +431,7 @@ public class Diff {
 
   // Skips over the new block.
   // Expects currentLineNewFile is at start of a new block that has already been announced as a move.
-  void skipNewBlock()
-  {
+  void skipNewBlock() {
     int oldline;
     diffStatus = idle;
     for(;;) {
@@ -468,8 +447,7 @@ public class Diff {
   
   // Have run out of old file. 
   // Print the rest of the new file, as inserts and/or moves.
-  void consumeNew()
-  {
+  void consumeNew() {
     for(;;) {
       if ( currentLineNewFile > newFileInfo.maxLine )
         break;        // end of file
@@ -482,8 +460,7 @@ public class Diff {
 
   // Have run out of new file.
   // Process the rest of the old file, printing any parts which were deletes or moves.
-  void consumeOld()
-  {
+  void consumeOld() {
     for(;;) {
       if ( currentLineOldFile > oldFileInfo.maxLine )
         break;       // end of file
@@ -521,8 +498,7 @@ class Node {            // the tree is made up of these nodes
 
   // Construct a new symbol table node and fill in its fields.
   // Parameter:  A line of the text file
-  Node( String pline)
-  {
+  Node( String pline) {
     pleft = pright = null;
     linestate = freshnode;
     // linenum field is not always valid     
@@ -532,8 +508,7 @@ class Node {            // the tree is made up of these nodes
   // Searches tree for a match to the line.
   // Parameter: a line of text
   // If node's linestate == freshnode, then created the node.
-  static Node matchsymbol( String pline )
-  {
+  static Node matchsymbol( String pline ) {
     int comparison;
     Node pnode = panchor;
     if ( panchor == null ) return panchor = new Node( pline);
@@ -562,34 +537,34 @@ class Node {            // the tree is made up of these nodes
   // Saves line into the symbol table.
   // Returns a handle to the symtab entry for that unique line.
   // If inoldfile nonzero, then linenum is remembered.
-  static Node addSymbol( String pline, boolean inoldfile, int linenum )
-  {
+  static Node addSymbol( String pline, boolean inoldfile, int linenum ) {
     Node pnode;
     pnode = matchsymbol( pline );  // find the node in the tree
     if ( pnode.linestate == freshnode ) {
       pnode.linestate = inoldfile ? oldonce : newonce;
     } else {
-      if (( pnode.linestate == oldonce && !inoldfile ) ||
-          ( pnode.linestate == newonce &&  inoldfile )) 
+      if (( pnode.linestate == oldonce && !inoldfile ) || ( pnode.linestate == newonce &&  inoldfile )) {
         pnode.linestate = bothonce;
-      else pnode.linestate = other;
+      }
+      else {
+        pnode.linestate = other;
+      }
     }
-    if (inoldfile) pnode.linenum = linenum;
+    if (inoldfile) {
+      pnode.linenum = linenum;
+    }
     return pnode;
   }
 
   // Arg is a ptr previously returned by addSymbol.
   // Returns true if the line was added to the symbol table exactly once with inoldfile true, 
   // and exactly once with inoldfile false.
-  boolean symbolIsUnique()
-  {
+  boolean symbolIsUnique() {
     return (linestate == bothonce );
   }
 
-
   // Prints the line to stdout.
-  void showSymbol()
-  {
+  void showSymbol() {
     System.out.println(line);
   }
 }

@@ -11,10 +11,13 @@ public class SourceFiles {
   private int emLOC = 0; // Empty Lines (no visible characters)
   private int stLOC = 0; // Lines of Statements (ending with ';')
 
+  // Cyclomatic Complexity
+  private int CC = 0;
+
   // Code Churn
-  private final int adLOC = 0; // Added Lines of Code
-  private final int chLOC = 0; // Changed Lines of Code
-  private final int dlLOC = 0; // Deleted Lines of Code
+  private int adLOC = 0; // Added Lines of Code
+  private int chLOC = 0; // Changed Lines of Code
+  private int dlLOC = 0; // Deleted Lines of Code
 
   // Constructor
   SourceFiles() {
@@ -60,7 +63,6 @@ public class SourceFiles {
   }
 
   // LOC Metrics
-
   public int getLinesOfCode() {
     for (SourceFile srcFile : srcList) {
       LOC += srcFile.getLinesOfCode();
@@ -96,6 +98,21 @@ public class SourceFiles {
     return emLOC;
   }
 
+  // Complexity mertics
+  public float getComplexity() {
+    for (SourceFile srcFile : srcList) {
+      CC += srcFile.getComplexity();
+    }
+    return (float)CC;
+  }
+  
+  public float getAvgComplexity() {
+    if (CC != 0) {
+      return (float)CC/srcList.size();
+    }
+    return (float) 0;
+}
+  
   // Code Churn Metrics
 
 }

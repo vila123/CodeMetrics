@@ -19,7 +19,10 @@ public class Method {
   private String methodName = "";
   private int lineNr = 0;
   private int lastLineNr = 0;
-  private int cComplexity = 0;
+  
+  // Cyclomatic Complexity
+  private int CC = 0;
+
 
   // Constructor
   Method(final String name) {
@@ -53,10 +56,10 @@ public class Method {
   }
 
   public void setComplexity(final int complexity) {
-    cComplexity = complexity;
+    CC = complexity;
   }
 
   public int getComplexity() {
-    return cComplexity;
+    return CC;
   }
 }
