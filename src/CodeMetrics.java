@@ -90,42 +90,42 @@ public class CodeMetrics {
       // Print LOC information
       for (int i = 0; i < codeMetrics.newFiles.getNrOfFiles(); i++) {
 	  System.out.println(codeMetrics.newFiles.getSrcFile(i).getFileName());
-	  System.out.println("\t Total Lines of Code: " + codeMetrics.newFiles.getSrcFile(i).getLinesOfCode()); 
-	  System.out.println("\t Executable Lines: " + codeMetrics.newFiles.getSrcFile(i).getLinesOfStatements());
-	  System.out.println("\t Lines of Comments: " + codeMetrics.newFiles.getSrcFile(i).getLinesOfComments()); 
-	  System.out.println("\t Trivial Lines: " + codeMetrics.newFiles.getSrcFile(i).getTrivialLines()); 
-	  System.out.println("\t Empty Lines: " + codeMetrics.newFiles.getSrcFile(i).getEmptyLines()); 
-	  System.out.println("\t Code Complexity: " + codeMetrics.newFiles.getSrcFile(i).getComplexity());
-	  System.out.println("\t Number of Methods: " + codeMetrics.newFiles.getSrcFile(i).getNrOfMethods());
+	  System.out.println("\t Total Lines of Code:       " + codeMetrics.newFiles.getSrcFile(i).getLinesOfCode()); 
+	  System.out.println("\t Executable Lines:          " + codeMetrics.newFiles.getSrcFile(i).getLinesOfStatements());
+	  System.out.println("\t Lines of Comments:         " + codeMetrics.newFiles.getSrcFile(i).getLinesOfComments()); 
+	  System.out.println("\t Trivial Lines:             " + codeMetrics.newFiles.getSrcFile(i).getTrivialLines()); 
+	  System.out.println("\t Empty Lines:               " + codeMetrics.newFiles.getSrcFile(i).getEmptyLines()); 
+	  System.out.println("\t Code Complexity:           " + codeMetrics.newFiles.getSrcFile(i).getComplexity());
+	  System.out.println("\t Number of Methods:         " + codeMetrics.newFiles.getSrcFile(i).getNrOfMethods());
 	  System.out.println("\t Average Method Complexity: " + codeMetrics.newFiles.getSrcFile(i).getAvgComplexity());
-	  System.out.println("\t Comment Percentage: " + (100 * codeMetrics.newFiles.getSrcFile(i).getLinesOfComments()) / codeMetrics.newFiles.getSrcFile(i).getLinesOfCode() + "%");
+	  System.out.println("\t Comment Percentage:        " + (100 * codeMetrics.newFiles.getSrcFile(i).getLinesOfComments()) / codeMetrics.newFiles.getSrcFile(i).getLinesOfCode() + "%");
 	  // Recommendations: Code where the percentage of comment is lower than 20% should be more commented. 
 	  // However overly commented code (>40%) is more difficult to read.  
 	  if (calculateCodeChurn) {
-	      System.out.println("\t Added Lines of Code: " + codeMetrics.newFiles.getSrcFile(i).getAddedLines());
-	      System.out.println("\t Changed Lines of Code: " + codeMetrics.newFiles.getSrcFile(i).getChangedLines());
-	      System.out.println("\t Deleted Lines of Code: " + codeMetrics.newFiles.getSrcFile(i).getDeletedLines());
-	      System.out.println("\t Code Churn: " + codeMetrics.newFiles.getSrcFile(i).getCodeChurn());
+	      System.out.println("\t Added Lines of Code:       " + codeMetrics.newFiles.getSrcFile(i).getAddedLines());
+	      System.out.println("\t Changed Lines of Code:     " + codeMetrics.newFiles.getSrcFile(i).getChangedLines());
+	      System.out.println("\t Deleted Lines of Code:     " + codeMetrics.newFiles.getSrcFile(i).getDeletedLines());
+	      System.out.println("\t Code Churn:                " + codeMetrics.newFiles.getSrcFile(i).getCodeChurn());
 	  }
 
       }
       System.out.println("Total (Aggregated Metrics)");
-      System.out.println("\t Total Lines of Code: " + codeMetrics.newFiles.getLinesOfCode()); 
-      System.out.println("\t Executable Lines: " + codeMetrics.newFiles.getLinesOfStatements());
-      System.out.println("\t Lines of Comments: " + codeMetrics.newFiles.getLinesOfComments()); 
-      System.out.println("\t Trivial Lines: " + codeMetrics.newFiles.getTrivialLines()); 
-      System.out.println("\t Empty Lines: " + codeMetrics.newFiles.getEmptyLines()); 
-      System.out.println("\t Code Complexity: " + codeMetrics.newFiles.getComplexity());
-      System.out.println("\t Number of Files: " + codeMetrics.newFiles.getNrOfFiles());
+      System.out.println("\t Total Lines of Code:     " + codeMetrics.newFiles.getLinesOfCode()); 
+      System.out.println("\t Executable Lines:        " + codeMetrics.newFiles.getLinesOfStatements());
+      System.out.println("\t Lines of Comments:       " + codeMetrics.newFiles.getLinesOfComments()); 
+      System.out.println("\t Trivial Lines:           " + codeMetrics.newFiles.getTrivialLines()); 
+      System.out.println("\t Empty Lines:             " + codeMetrics.newFiles.getEmptyLines()); 
+      System.out.println("\t Code Complexity:         " + codeMetrics.newFiles.getComplexity());
+      System.out.println("\t Number of Files:         " + codeMetrics.newFiles.getNrOfFiles());
       System.out.println("\t Average File Complexity: " + codeMetrics.newFiles.getAvgComplexity());
-      System.out.println("\t Comment Percentage: " + (100 * codeMetrics.newFiles.getLinesOfComments()) / codeMetrics.newFiles.getLinesOfCode() + "%");
+      System.out.println("\t Comment Percentage:      " + (100 * codeMetrics.newFiles.getLinesOfComments()) / codeMetrics.newFiles.getLinesOfCode() + "%");
       // Recommendations: Code where the percentage of comment is lower than 20% should be more commented. 
       // However overly commented code (>40%) is more difficult to read.  
 	  if (calculateCodeChurn) {
-	      System.out.println("\t Added Lines of Code: " + codeMetrics.newFiles.getAddedLines());
-	      System.out.println("\t Changed Lines of Code: " + codeMetrics.newFiles.getChangedLines());
-	      System.out.println("\t Deleted Lines of Code: " + codeMetrics.newFiles.getDeletedLines());
-	      System.out.println("\t Code Churn: " + codeMetrics.newFiles.getCodeChurn());
+	      System.out.println("\t Added Lines of Code:     " + codeMetrics.newFiles.getAddedLines());
+	      System.out.println("\t Changed Lines of Code:   " + codeMetrics.newFiles.getChangedLines());
+	      System.out.println("\t Deleted Lines of Code:   " + codeMetrics.newFiles.getDeletedLines());
+	      System.out.println("\t Code Churn:              " + codeMetrics.newFiles.getCodeChurn());
 	  }
   }
 
