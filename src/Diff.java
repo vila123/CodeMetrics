@@ -46,10 +46,9 @@ class fileInfo {
 
 public class Diff {
   // Code Churn
-  public int adLOC = 0; // Added Lines of Code
-  public int chLOC = 0; // Changed Lines of Code
-  public int dlLOC = 0; // Deleted Lines of Code
-  public int cChurn = 0; // Total Code Churn
+  private int adLOC = 0; // Added Lines of Code
+  private int chLOC = 0; // Changed Lines of Code
+  private int dlLOC = 0; // Deleted Lines of Code
 
   // block len > any possible real block len
   final int UNREAL=Integer.MAX_VALUE;
@@ -65,35 +64,18 @@ public class Diff {
   //The array declarations are to MAXLINECOUNT+2 so that we can have two extra lines 
   //(pseudolines) at line# 0 and line# MAXLINECOUNT+1 (or less).
   int blocklen[];
-
-  public static void main(String args[]) {
-    if ( args.length != 2 ) {
-      System.err.println("Usage: diff oldfile newfile" );
-      System.exit(1);
-    }
-    Diff d = new Diff();
-    d.doDiff(args[0], args[1]);
-    d.countChurn();
-
-    d.cChurn = d.adLOC+d.chLOC+d.dlLOC;
-    System.out.println("Added Lines of Code: " + d.adLOC);
-    System.out.println("Changed Lines of Code:" + d.chLOC);
-    System.out.println("Deleted Lines of Code: " + d.dlLOC);
-    System.out.println("Total Code Churn: " + d.cChurn);
-
-    return;
-  }
   
-  public void print() {
-    cChurn = adLOC+chLOC+dlLOC;
-    System.out.println("Added Lines of Code: " + adLOC);
-    System.out.println("Changed Lines of Code:" + chLOC);
-    System.out.println("Deleted Lines of Code: " + dlLOC);
-    System.out.println("Total Code Churn: " + cChurn);
-  }
-
   // Constructor
   Diff() {
+  }
+  
+  public void countChurn(SourceFile oldFile, SourceFile newFile) {
+      doDiff(oldFile.getFilePath(), newFile.getFilePath());
+      calculateChurn();
+      
+      newFile.setAddedLines(adLOC); // Added Lines of Code
+      newFile.setChangedLines(chLOC); // Changed Lines of Code
+      newFile.setDeletedLines(dlLOC); // Deleted Lines of Code
   }
 
   // Do one file comparison. Called with both filenames.
@@ -116,7 +98,6 @@ public class Diff {
 
     // Now do the work, and print the results.
     transform();
-    print();
   }
 
   //Reads the file specified by pinfo.file.
@@ -303,7 +284,7 @@ public class Diff {
 
   // Calculate Code Churn
   // Expects all data structures have been filled out.
-  void countChurn() {
+  void calculateChurn() {
     diffStatus = idle;
     anyprinted = false;
     for( currentLineOldFile = currentLineNewFile = 1; ; ) {

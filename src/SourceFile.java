@@ -327,9 +327,17 @@ public class SourceFile {
   // Is this a method declaration?
   private boolean isMethod(final String strLine) {
     if (!isSelections(strLine) && !isLoops(strLine) && !isExceptions(strLine) && !strLine.contains("class ")) {
-      return true;
+      return verifyMethod(strLine);
     }
     return false;
+  }
+  
+  // Is this really a method declaration?
+  private boolean verifyMethod (final String strLine) {
+      if (!strLine.contains("(")) {
+	  return false;
+      }
+      return true;
   }
 
   // Does line start with if, else, case, default?
@@ -459,7 +467,6 @@ public class SourceFile {
 }
 
   // Code Churn Metrics
-
   public int getAddedLines() {
     return adLOC;
   }
@@ -477,15 +484,15 @@ public class SourceFile {
     return codeChurn;
   }
 
-  public void addedLine() {
-    adLOC++;
+  public void setAddedLines(int value) {
+    adLOC = value;
   }
 
-  public void changedLine() {
-    chLOC++;
+  public void setChangedLines(int value) {
+    chLOC = value;
   }
 
-  public void deletedLine() {
-    dlLOC++;
+  public void setDeletedLines(int value) {
+    dlLOC = value;
   }
 }

@@ -114,5 +114,32 @@ public class SourceFiles {
 }
   
   // Code Churn Metrics
+  public int getAddedLines() {
+      for (SourceFile srcFile : srcList) {
+	  adLOC += srcFile.getAddedLines();
+      }
+      return adLOC;
+  }
 
+  public int getChangedLines() {
+      for (SourceFile srcFile : srcList) {
+	  chLOC += srcFile.getChangedLines();
+      }
+      return chLOC;
+  }
+
+  public int getDeletedLines() {
+      for (SourceFile srcFile : srcList) {
+	  dlLOC += srcFile.getDeletedLines();
+      }
+      return dlLOC;
+  }
+
+  public int getCodeChurn() {
+      int codeChurn = 0;
+      for (SourceFile srcFile : srcList) {
+	  codeChurn += srcFile.getCodeChurn();
+      }
+      return codeChurn;
+  }
 }
