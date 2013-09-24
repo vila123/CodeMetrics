@@ -1,1 +1,16 @@
-/bin
+##Eclipse
+bin/**
+.project
+.classpath
+.settings/
+.metadata
+
+### Java ###
+*.class
+*.jar
+*.war
+*.ear
+
+
+### Maven
+target/
