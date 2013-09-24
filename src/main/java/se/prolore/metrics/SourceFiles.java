@@ -6,20 +6,8 @@ import java.util.ArrayList;
 public class SourceFiles {
 	ArrayList<SourceFile> srcList = null;
 
-	// LOC Metric
-	private int LOC = 0; // Lines of Code (total)
-	private int ccLOC = 0; // Lines of Comments (single line of comment
-	private int trLOC = 0; // Trivial Lines ( ´{´ or ´}´)
-	private int emLOC = 0; // Empty Lines (no visible characters)
-	private int stLOC = 0; // Lines of Statements (ending with ';')
-
 	// Cyclomatic Complexity
 	private int CC = 0;
-
-	// Code Churn
-	private int adLOC = 0; // Added Lines of Code
-	private int chLOC = 0; // Changed Lines of Code
-	private int dlLOC = 0; // Deleted Lines of Code
 
 	// Constructor
 	SourceFiles() {
@@ -68,6 +56,7 @@ public class SourceFiles {
 
 	// LOC Metrics
 	public int getLinesOfCode() {
+		int LOC = 0; // Lines of Code (total)
 		for (SourceFile srcFile : srcList) {
 			LOC += srcFile.getLinesOfCode();
 		}
@@ -75,6 +64,7 @@ public class SourceFiles {
 	}
 
 	public int getLinesOfStatements() {
+		int stLOC = 0; // Lines of Statements (ending with ';')
 		for (SourceFile srcFile : srcList) {
 			stLOC += srcFile.getLinesOfStatements();
 		}
@@ -82,6 +72,7 @@ public class SourceFiles {
 	}
 
 	public int getLinesOfComments() {
+		int ccLOC = 0; // Lines of Comments (single line of comment
 		for (SourceFile srcFile : srcList) {
 			ccLOC += srcFile.getLinesOfComments();
 		}
@@ -89,6 +80,7 @@ public class SourceFiles {
 	}
 
 	public int getTrivialLines() {
+		int trLOC = 0; // Trivial Lines ( ´{´ or ´}´)
 		for (SourceFile srcFile : srcList) {
 			trLOC += srcFile.getTrivialLines();
 		}
@@ -96,6 +88,7 @@ public class SourceFiles {
 	}
 
 	public int getEmptyLines() {
+		int emLOC = 0; // Empty Lines (no visible characters)
 		for (SourceFile srcFile : srcList) {
 			emLOC += srcFile.getEmptyLines();
 		}
@@ -119,6 +112,7 @@ public class SourceFiles {
 
 	// Code Churn Metrics
 	public int getAddedLines() {
+		int adLOC = 0; // Added Lines of Code
 		for (SourceFile srcFile : srcList) {
 			adLOC += srcFile.getAddedLines();
 		}
@@ -126,6 +120,7 @@ public class SourceFiles {
 	}
 
 	public int getChangedLines() {
+		int chLOC = 0; // Changed Lines of Code
 		for (SourceFile srcFile : srcList) {
 			chLOC += srcFile.getChangedLines();
 		}
@@ -133,6 +128,7 @@ public class SourceFiles {
 	}
 
 	public int getDeletedLines() {
+		int dlLOC = 0; // Deleted Lines of Code
 		for (SourceFile srcFile : srcList) {
 			dlLOC += srcFile.getDeletedLines();
 		}
