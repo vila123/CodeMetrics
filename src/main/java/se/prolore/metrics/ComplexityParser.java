@@ -2,6 +2,7 @@ package se.prolore.metrics;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,11 +24,11 @@ public class ComplexityParser {
 	  private int adLOC = 0; // Added Lines of Code
 	  private int chLOC = 0; // Changed Lines of Code
 	  private int dlLOC = 0; // Deleted Lines of Code
-	  private SourceFile sourceFile;
+	  private File sourceFile;
 	  
 	  private ArrayList<Method> methodList = null;
 	  
-	  public ComplexityParser(SourceFile sourceFile){
+	  public ComplexityParser(File sourceFile){
 		this.sourceFile = sourceFile;
 		methodList = new ArrayList<Method>();
 		  
@@ -36,7 +37,7 @@ public class ComplexityParser {
 	// Count Lines Of Code
 	  public void countLines() {
 	    try{
-	      FileInputStream fStream = new FileInputStream(sourceFile.getFilePath());
+	      FileInputStream fStream = new FileInputStream(sourceFile.getAbsolutePath());
 	      DataInputStream dStream = new DataInputStream(fStream);
 	      BufferedReader bReader = new BufferedReader(new InputStreamReader(dStream));
 	      String strLine;
@@ -83,7 +84,7 @@ public class ComplexityParser {
 	      for (int i=0; i < getNrOfMethods(); i++) {
 	    	  Method method = getMethod(i);
 	        try{
-	          FileInputStream fStream = new FileInputStream(sourceFile.getFilePath());
+	          FileInputStream fStream = new FileInputStream(sourceFile.getAbsolutePath());
 	          DataInputStream dStream = new DataInputStream(fStream);
 	          BufferedReader bReader = new BufferedReader(new InputStreamReader(dStream));
 
@@ -329,10 +330,10 @@ public class ComplexityParser {
 	  }	
 	  
 	  // Populate the private ArrayList methods
-	  public void getMethods() {
+	  public void parseMethods() {
 	    int firstLine = 0;
 	    try {
-	      FileInputStream fStream = new FileInputStream(sourceFile.getFilePath());
+	      FileInputStream fStream = new FileInputStream(sourceFile.getAbsolutePath());
 	      DataInputStream dStream = new DataInputStream(fStream);
 	      BufferedReader bReader = new BufferedReader(new InputStreamReader(dStream));
 	      String strLine;
@@ -455,5 +456,10 @@ public class ComplexityParser {
 	      System.out.println("Method: " + methodList.get(j).getMethodName() + "\t Complexity: " +
 	      methodList.get(j).getComplexity());
 	    }
-	  }	  
+	  }
+
+	public File getSourceFile() {
+		return sourceFile;
+	}
+
 }

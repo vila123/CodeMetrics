@@ -2,6 +2,7 @@ package se.prolore.metrics;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -71,13 +72,13 @@ public class Diff {
   Diff() {
   }
   
-  public void countChurn(SourceFile oldFile, SourceFile newFile) {
-      doDiff(oldFile.getFilePath(), newFile.getFilePath());
+  public void countChurn(ComplexityParser oldFile, ComplexityParser newFile) {
+      doDiff(oldFile.getSourceFile().getAbsolutePath(), newFile.getSourceFile().getAbsolutePath());
       calculateChurn();
       
-      newFile.getComplexityParser().setAddedLines(adLOC); // Added Lines of Code
-      newFile.getComplexityParser().setChangedLines(chLOC); // Changed Lines of Code
-      newFile.getComplexityParser().setDeletedLines(dlLOC); // Deleted Lines of Code
+      newFile.setAddedLines(adLOC); // Added Lines of Code
+      newFile.setChangedLines(chLOC); // Changed Lines of Code
+      newFile.setDeletedLines(dlLOC); // Deleted Lines of Code
   }
 
   // Do one file comparison. Called with both filenames.

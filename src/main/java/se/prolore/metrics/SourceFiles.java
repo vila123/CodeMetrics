@@ -4,14 +4,14 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class SourceFiles {
-	ArrayList<SourceFile> srcList = null;
+	ArrayList<ComplexityParser> srcFiles = null;
 
 	// Cyclomatic Complexity
 	private int CC = 0;
 
 	// Constructor
 	SourceFiles() {
-		srcList = new ArrayList<SourceFile>();
+		srcFiles = new ArrayList<ComplexityParser>();
 	}
 
 	// Parse a file path and find all source files
@@ -19,12 +19,10 @@ public class SourceFiles {
 		File[] faFiles = new File(sDir.getAbsolutePath()).listFiles();
 
 		for (File file : faFiles) {
-			if (file.getName().endsWith("java") && file.isFile()) {
+			if (file.isFile()) {
 				// System.out.println(file.getName());
 
-				SourceFile javaSource = new SourceFile(file.getName(),
-						file.getAbsolutePath());
-				srcList.add(javaSource);
+				addSrcFile(file);
 			}
 			if (file.isDirectory()) {
 				parseSrcDir(file);
@@ -35,9 +33,7 @@ public class SourceFiles {
 	// Only work with one source file
 	public void addSrcFile(final File sFile) {
 		if (sFile.getName().endsWith("java") && sFile.isFile()) {
-			SourceFile javaSource = new SourceFile(sFile.getName(),
-					sFile.getAbsolutePath());
-			srcList.add(javaSource);
+			srcFiles.add(new ComplexityParser(sFile));
 		} else {
 			System.out
 					.println("ERROR: File type is not yet supported. Only support for java files.");
@@ -47,97 +43,97 @@ public class SourceFiles {
 
 	// Return the total number of source code files
 	public int getNrOfFiles() {
-		return srcList.size();
+		return srcFiles.size();
 	}
 
-	public SourceFile getSrcFile(final int index) {
-		return srcList.get(index);
+	public ComplexityParser getParser(final int index) {
+		return srcFiles.get(index);
 	}
 
 	// LOC Metrics
-	public int getLinesOfCode() {
+	public int sumLinesOfCode() {
 		int LOC = 0; // Lines of Code (total)
-		for (SourceFile srcFile : srcList) {
+		for (ComplexityParser srcFile : srcFiles) {
 			LOC += srcFile.getLinesOfCode();
 		}
 		return LOC;
 	}
 
-	public int getLinesOfStatements() {
+	public int sumLinesOfStatements() {
 		int stLOC = 0; // Lines of Statements (ending with ';')
-		for (SourceFile srcFile : srcList) {
+		for (ComplexityParser srcFile : srcFiles) {
 			stLOC += srcFile.getLinesOfStatements();
 		}
 		return stLOC;
 	}
 
-	public int getLinesOfComments() {
+	public int sumLinesOfComments() {
 		int ccLOC = 0; // Lines of Comments (single line of comment
-		for (SourceFile srcFile : srcList) {
+		for (ComplexityParser srcFile : srcFiles) {
 			ccLOC += srcFile.getLinesOfComments();
 		}
 		return ccLOC;
 	}
 
-	public int getTrivialLines() {
+	public int sumTrivialLines() {
 		int trLOC = 0; // Trivial Lines ( ´{´ or ´}´)
-		for (SourceFile srcFile : srcList) {
+		for (ComplexityParser srcFile : srcFiles) {
 			trLOC += srcFile.getTrivialLines();
 		}
 		return trLOC;
 	}
 
-	public int getEmptyLines() {
+	public int sumEmptyLines() {
 		int emLOC = 0; // Empty Lines (no visible characters)
-		for (SourceFile srcFile : srcList) {
+		for (ComplexityParser srcFile : srcFiles) {
 			emLOC += srcFile.getEmptyLines();
 		}
 		return emLOC;
 	}
 
 	// Complexity mertics
-	public float getComplexity() {
-		for (SourceFile srcFile : srcList) {
+	public float sumComplexity() {
+		for (ComplexityParser srcFile : srcFiles) {
 			CC += srcFile.getComplexity();
 		}
 		return (float) CC;
 	}
 
-	public float getAvgComplexity() {
+	public float sumAvgComplexity() {
 		if (CC != 0) {
-			return (float) CC / srcList.size();
+			return (float) CC / srcFiles.size();
 		}
 		return (float) 0;
 	}
 
 	// Code Churn Metrics
-	public int getAddedLines() {
+	public int sumAddedLines() {
 		int adLOC = 0; // Added Lines of Code
-		for (SourceFile srcFile : srcList) {
+		for (ComplexityParser srcFile : srcFiles) {
 			adLOC += srcFile.getAddedLines();
 		}
 		return adLOC;
 	}
 
-	public int getChangedLines() {
+	public int sumChangedLines() {
 		int chLOC = 0; // Changed Lines of Code
-		for (SourceFile srcFile : srcList) {
+		for (ComplexityParser srcFile : srcFiles) {
 			chLOC += srcFile.getChangedLines();
 		}
 		return chLOC;
 	}
 
-	public int getDeletedLines() {
+	public int sumDeletedLines() {
 		int dlLOC = 0; // Deleted Lines of Code
-		for (SourceFile srcFile : srcList) {
+		for (ComplexityParser srcFile : srcFiles) {
 			dlLOC += srcFile.getDeletedLines();
 		}
 		return dlLOC;
 	}
 
-	public int getCodeChurn() {
+	public int sumCodeChurn() {
 		int codeChurn = 0;
-		for (SourceFile srcFile : srcList) {
+		for (ComplexityParser srcFile : srcFiles) {
 			codeChurn += srcFile.getCodeChurn();
 		}
 		return codeChurn;
