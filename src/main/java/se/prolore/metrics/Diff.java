@@ -75,9 +75,9 @@ public class Diff {
       doDiff(oldFile.getFilePath(), newFile.getFilePath());
       calculateChurn();
       
-      newFile.setAddedLines(adLOC); // Added Lines of Code
-      newFile.setChangedLines(chLOC); // Changed Lines of Code
-      newFile.setDeletedLines(dlLOC); // Deleted Lines of Code
+      newFile.getComplexityParser().setAddedLines(adLOC); // Added Lines of Code
+      newFile.getComplexityParser().setChangedLines(chLOC); // Changed Lines of Code
+      newFile.getComplexityParser().setDeletedLines(dlLOC); // Deleted Lines of Code
   }
 
   // Do one file comparison. Called with both filenames.

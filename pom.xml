@@ -24,7 +24,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>se.prolore.metrics</mainClass>
+              <mainClass>se.prolore.metrics.CodeMetrics</mainClass>
             </manifest>
           </archive>
         </configuration>
