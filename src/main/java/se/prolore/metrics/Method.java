@@ -204,7 +204,7 @@ public class Method {
   // Remove tailing comment if there is any
   private String trimComments(final String strLine) {
 
-    int index = strLine.indexOf("//");
+    int index = strLine.indexOf(filetype.getLineComment());
 
     // No comments in this line, return the line
     if (index == -1) { // We have to ignore "//" (not a comment)
@@ -213,7 +213,7 @@ public class Method {
 
     while (inQuotation(strLine, index) && index != -1) {
       // System.out.println(index + strLine);
-      index = strLine.indexOf("//", index + 2);
+      index = strLine.indexOf(filetype.getLineComment(), index + 2);
     }
 
     if (index == -1) {

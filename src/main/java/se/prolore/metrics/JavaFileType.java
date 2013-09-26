@@ -73,8 +73,7 @@ public class JavaFileType {
 	
 	  // Douse line start with catch, finally, throw, throws?
 	  private boolean isExceptions(final String strLine) {
-	    if (strLine.startsWith("try") || strLine.startsWith("catch") || strLine.startsWith("finally") || strLine.startsWith("throw")
-	        || strLine.startsWith("throws")) {
+	    if (exceptions.contains(strLine)) {
 	      return true;
 	    }
 	    return false;
@@ -82,7 +81,7 @@ public class JavaFileType {
 	
 	  // Does line start with if, else, case, default?
 	  private boolean isSelections(final String strLine) {
-	    if (strLine.startsWith("if") || strLine.startsWith("else") || strLine.startsWith("case") || strLine.startsWith("default")) {
+	    if (selectionKeyWords.contains(strLine)) {
 	      return true;
 	    }
 	    return false;
@@ -90,8 +89,7 @@ public class JavaFileType {
 	  
 	  // Does line start with for, while, do, break, continue?
 	  private boolean isLoops(final String strLine) {
-	    if (strLine.startsWith("for") || strLine.startsWith("while") || strLine.startsWith("do") || strLine.startsWith("break")
-	        || strLine.startsWith("continue")) {
+	    if (loopKeyWords.contains(strLine)) {
 	      return true;
 	    }
 	    return false;
@@ -111,5 +109,9 @@ public class JavaFileType {
 		  return false;
 	      }
 	      return true;
+	  }
+	  
+	  public String getLineComment() {
+		  return "//";
 	  }
 }
